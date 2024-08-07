@@ -55,7 +55,7 @@
         .bingo-grid {
             display: grid;
             grid-template-columns: repeat(5, 100px);
-            grid-template-rows: repeat(5, 100px);
+            grid-template-rows: auto repeat(5, 100px);
             gap: 0;
             padding: 0;
             margin: 0;
@@ -99,7 +99,7 @@
             }
             .bingo-grid {
                 grid-template-columns: repeat(5, 60px);
-                grid-template-rows: repeat(5, 60px);
+                grid-template-rows: auto repeat(5, 60px);
             }
             .generate-button, .print-button {
                 padding: 8px 16px;
@@ -137,7 +137,7 @@
             .then(text => {
                 inputs = text.trim().split('\n');
                 generateBingoGrid();
-            });
+            })
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -149,7 +149,7 @@
 
         function generateBingoGrid() {
             const grid = document.querySelector('.bingo-grid');
-            grid.innerHTML = '';
+            grid.innerHTML = ''; // Clear existing squares
 
             const columns = ['B', 'I', 'N', 'G', 'O'];
             columns.forEach(column => {
