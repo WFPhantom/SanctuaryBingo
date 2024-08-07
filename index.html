@@ -3,6 +3,7 @@
 <head>
     <title>Sanctuary Unban Ticket Bingo</title>
     <link rel="icon" type="image/png" href="sanctuarybanner.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             background-color: #121212;
@@ -23,8 +24,8 @@
             text-align: center;
             font-weight: bold;
             color: #ffffff;
-            padding: 0; /* Remove padding */
-            margin: 0; /* Remove margin */
+            padding: 0;
+            margin: 0;
         }
         .bingo-square {
             width: 100px;
@@ -37,23 +38,23 @@
             text-overflow: ellipsis;
             word-wrap: break-word;
             border: 1px solid #ffffff;
-            cursor: pointer; /* Make squares clickable */
+            cursor: pointer;
             background-color: #ffffff;
             color: #000000;
-            outline: 3px solid #000000; /* Add black outline */
-            padding: 0; /* Remove padding */
-            margin: 0; /* Remove margin */
+            outline: 3px solid #000000;
+            padding: 0;
+            margin: 0;
         }
         .bingo-square.clicked {
-            background-color: #ffcccb; /* Light pink background color when clicked */
+            background-color: #ffcccb;
         }
         .bingo-grid {
             display: grid;
             grid-template-columns: repeat(5, 100px);
             grid-template-rows: repeat(5, 100px);
-            gap: 0px; /* No gap */
-            padding: 0; /* No padding */
-            margin: 0; /* No margin */
+            gap: 0;
+            padding: 0;
+            margin: 0;
         }
         .button-container {
             text-align: center;
@@ -86,17 +87,31 @@
                 display: block;
             }
         }
+        @media (max-width: 600px) {
+            .bingo-square {
+                width: 60px;
+                height: 60px;
+                font-size: 12px;
+            }
+            .bingo-grid {
+                grid-template-columns: repeat(5, 60px);
+                grid-template-rows: repeat(5, 60px);
+            }
+            .generate-button, .print-button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1 class="bingo-title">Sanctuary Unban Ticket</h1>
+    <h1 class="bingo-title">Sanctuary Unban Ticket Bingo</h1>
     <div class="bingo-grid">
         <div class="bingo-column">B</div>
         <div class="bingo-column">I</div>
         <div class="bingo-column">N</div>
         <div class="bingo-column">G</div>
         <div class="bingo-column">O</div>
-        <!-- Generate the rest of the squares dynamically using JavaScript -->
     </div>
     <div class="button-container">
         <button class="generate-button">Generate</button>
@@ -113,15 +128,21 @@
     <script>
         let inputs = [];
 
-        // Read the input.txt file and store the inputs
         fetch('input.txt')
-            .then(response => response.text())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.text();
+            })
             .then(text => {
                 inputs = text.trim().split('\n');
                 generateBingoGrid();
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
             });
 
-        // Function to shuffle an array
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -129,13 +150,10 @@
             }
             return array;
         }
-
-        // Function to generate the bingo grid
         function generateBingoGrid() {
             const grid = document.querySelector('.bingo-grid');
-            grid.innerHTML = ''; // Clear existing squares
+            grid.innerHTML = ''; 
 
-            // Add column headers
             const columns = ['B', 'I', 'N', 'G', 'O'];
             columns.forEach(column => {
                 const columnDiv = document.createElement('div');
@@ -144,7 +162,6 @@
                 grid.appendChild(columnDiv);
             });
 
-            // Shuffle the inputs and take the first 24 unique elements
             const shuffledInputs = shuffleArray(inputs).slice(0, 24);
             let squareIndex = 0;
             for (let row = 0; row < 5; row++) {
@@ -152,14 +169,13 @@
                     const square = document.createElement('div');
                     square.classList.add('bingo-square');
                     if (row === 2 && col === 2) {
-                        // Middle square
                         const img = document.createElement('img');
                         img.src = 'sanctuarybanner.png';
                         img.alt = 'Sanctuary Banner';
                         img.width = 100;
                         img.height = 100;
                         square.appendChild(img);
-                        square.style.cursor = 'default'; // Not clickable
+                        square.style.cursor = 'default';
                         square.innerHTML += '<span class="free-text">FREE</span>';
                     } else {
                         square.textContent = shuffledInputs[squareIndex++];
@@ -172,7 +188,6 @@
             }
         }
 
-        // Add event listener to the generate button
         document.querySelector('.generate-button').addEventListener('click', generateBingoGrid);
     </script>
 </body>
