@@ -69,7 +69,7 @@
         }
         .button-container {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-columns: 1fr 2fr 1fr;
             gap: 10px;
             margin: 10px 0;
             width: 100%;
@@ -139,8 +139,8 @@
         <div class="bingo-column">O</div>
     </div>
     <div class="button-container">
-        <input type="text" id="seed-input" placeholder="Enter seed (optional)">
         <button class="generate-button">Generate</button>
+        <input type="text" id="seed-input" placeholder="Enter seed (optional)">
         <button class="print-button" onclick="window.print()">Print</button>
     </div>
     <div class="current-seed" id="current-seed">Current seed: </div>
@@ -153,6 +153,7 @@
 
     <script>
         let inputs = [];
+        const letters = 'abcdefghijklmnopqrstuvwx'.split('');
 
         fetch('input.txt')
             .then(response => response.text())
@@ -224,6 +225,7 @@
                         }
                         square.addEventListener('click', () => {
                             square.classList.toggle('clicked');
+                            updateSeed(square, index);
                             saveBingoGrid();
                         });
                     }
@@ -235,52 +237,79 @@
             }
         }
 
-        function generateBingoGrid() {
-            let seedInput = document.getElementById('seed-input').value;
-            if (!seedInput) {
-                seedInput = Math.random().toString();
-            } else if (!seedInput.startsWith('0.')) {
-                seedInput = '0.' + seedInput;
-            }
-            document.getElementById('current-seed').textContent = `Current seed: ${seedInput.substring(2)}`;
-            const grid = document.querySelector('.bingo-grid');
-            grid.innerHTML = '';
+function generateBingoGrid() {
+    let seedInput = document.getElementById('seed-input').value;
+    let preselectedLetters = '';
+    if (seedInput.includes('.')) {
+        [seedInput, preselectedLetters] = seedInput.split('.');
+    }
+    if (!seedInput) {
+        seedInput = Math.random().toString();
+    } else if (!seedInput.startsWith('0.')) {
+        seedInput = '0.' + seedInput;
+    }
+    document.getElementById('current-seed').textContent = `Current seed: ${seedInput.substring(2)}.${preselectedLetters}`;
+    const grid = document.querySelector('.bingo-grid');
+    grid.innerHTML = '';
 
-            const columns = ['B', 'I', 'N', 'G', 'O'];
-            columns.forEach(column => {
-                const columnDiv = document.createElement('div');
-                columnDiv.classList.add('bingo-column');
-                columnDiv.textContent = column;
-                grid.appendChild(columnDiv);
-            });
+    const columns = ['B', 'I', 'N', 'G', 'O'];
+    columns.forEach(column => {
+        const columnDiv = document.createElement('div');
+        columnDiv.classList.add('bingo-column');
+        columnDiv.textContent = column;
+        grid.appendChild(columnDiv);
+    });
 
-            const shuffledInputs = shuffleArray(inputs.slice(), seedInput).slice(0, 24);
-            let squareIndex = 0;
-            for (let row = 0; row < 5; row++) {
-                for (let col = 0; col < 5; col++) {
-                    const square = document.createElement('div');
-                    square.classList.add('bingo-square');
-                    if (row === 2 && col === 2) {
-                        const img = document.createElement('img');
-                        img.src = 'sanctuarybanner.png';
-                        img.alt = 'Sanctuary Banner';
-                        square.appendChild(img);
-                        square.style.cursor = 'default';
-                        square.innerHTML += '<span class="free-text">FREE</span>';
-                    } else {
-                        square.textContent = shuffledInputs[squareIndex++];
-                        square.addEventListener('click', () => {
-                            square.classList.toggle('clicked');
-                            saveBingoGrid();
-                        });
-                    }
-                    grid.appendChild(square);
-                    adjustFontSize(square);
+    const shuffledInputs = shuffleArray(inputs.slice(), seedInput).slice(0, 24);
+    let squareIndex = 0;
+    for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+            const square = document.createElement('div');
+            square.classList.add('bingo-square');
+            if (row === 2 && col === 2) {
+                const img = document.createElement('img');
+                img.src = 'sanctuarybanner.png';
+                img.alt = 'Sanctuary Banner';
+                square.appendChild(img);
+                square.style.cursor = 'default';
+                square.innerHTML += '<span class="free-text">FREE</span>';
+            } else {
+                square.textContent = shuffledInputs[squareIndex];
+                if (squareIndex < letters.length && preselectedLetters.includes(letters[squareIndex])) {
+                    square.classList.add('clicked');
                 }
+                (function(index) {
+                    square.addEventListener('click', () => {
+                        square.classList.toggle('clicked');
+                        updateSeed(square, index >= 12 ? index + 1 : index);
+                        saveBingoGrid();
+                    });
+                })(squareIndex);
+                squareIndex++;
             }
-            saveBingoGrid();
+            grid.appendChild(square);
+            adjustFontSize(square);
         }
+    }
+    saveBingoGrid();
+}
 
+function updateSeed(square, index) {
+    const currentSeedElement = document.getElementById('current-seed');
+    let currentSeedText = currentSeedElement.textContent.replace('Current seed: ', '');
+    let [seed, preselectedLetters] = currentSeedText.split('.');
+    preselectedLetters = preselectedLetters || '';
+    const letterIndex = index >= 12 ? index - 1 : index;
+    const letter = letters[letterIndex];
+    if (square.classList.contains('clicked')) {
+        if (!preselectedLetters.includes(letter)) {
+            preselectedLetters += letter;
+        }
+    } else {
+        preselectedLetters = preselectedLetters.replace(letter, '');
+    }
+    currentSeedElement.textContent = `Current seed: ${seed}.${preselectedLetters}`;
+}
         function adjustFontSize(element) {
             const maxFontSize = 16;
             const minFontSize = 8;
